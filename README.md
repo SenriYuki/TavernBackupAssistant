@@ -22,4 +22,5 @@ A simple, "idiot-proof" backup and restore tool designed for SillyTavern.
 **只需一步！复制下面的指令，粘贴到 Termux 中并回车：**
 
 ```bash
-cd ~/SillyTavern/plugins && git clone [https://github.com/YourUserName/TavernBackupAssistant.git](https://github.com/YourUserName/TavernBackupAssistant.git) && cd TavernBackupAssistant && npm install && echo "安装完成！请重启酒馆"
+cd ~/SillyTavern/plugins && git clone [https://github.com/SenriYuki/TavernBackupAssistant.git](https://github.com/SenriYuki/TavernBackupAssistant.git) && cd TavernBackupAssistant && npm install && echo "安装完成！请重启酒馆"
+
