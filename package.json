@@ -1,0 +1,12 @@
+{
+  "name": "tavern-backup-assistant",
+  "version": "1.0.0",
+  "description": "One-click backup and restore tool for SillyTavern / 酒馆一键备份还原助手",
+  "main": "index.js",
+  "author": "YourName",
+  "dependencies": {
+    "adm-zip": "^0.5.10",
+    "archiver": "^5.3.1",
+    "fs-extra": "^10.0.0"
+  }
+}

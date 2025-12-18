@@ -1,0 +1,8 @@
+{
+    "display_name": "Tavern Backup Assistant (酒馆备份助手)",
+    "author": "SenriYuki",
+    "version": "1.0.0",
+    "js": "index.js",
+    "css": "style.css",
+    "type": "global"
+}
