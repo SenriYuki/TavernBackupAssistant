@@ -55,13 +55,14 @@ If you are using Termux, follow these steps to enable server plugins:
 ```yaml
 enableServerPlugins: true             # Allow backend logic (允许运行后端逻辑)
 enableServerPluginsAutoUpdate: true   # Auto-install dependencies (允许自动安装组件)
-
+```
 
 ### 📱 Android (Termux) 用户 [推荐]
 **只需一步！复制下面的指令，粘贴到 Termux 中并回车：**
 
 ```bash
 cd ~/SillyTavern/plugins && git clone [https://github.com/SenriYuki/TavernBackupAssistant.git](https://github.com/SenriYuki/TavernBackupAssistant.git) && cd TavernBackupAssistant && npm install && echo "安装完成！请重启酒馆"
+```
 
 ### 💻 PC (Windows/Linux) 用户 [推荐]
 
@@ -70,4 +71,5 @@ cd SillyTavern/plugins
 git clone https://github.com/SenriYuki/TavernBackupAssistant.git
 cd TavernBackupAssistant
 npm install
+```
 
