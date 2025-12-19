@@ -1,120 +1,99 @@
-/* Mask & Window / 遮罩与窗口 */
+/* Mask & Window / 遮罩与窗口 - 保持兼容性并加入初版质感 */
 .ba-mask { 
-    position: fixed; 
-    top: 0; 
-    left: 0; 
-    width: 100%; 
-    height: 100%; 
-    background: rgba(0, 0, 0, 0.6); 
-    z-index: 3000; /* 调低层级，不要超过酒馆的最顶层 UI */
-    display: flex; 
-    justify-content: center; 
-    align-items: center; 
-    backdrop-filter: blur(4px); 
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+    background: rgba(0, 0, 0, 0.75); z-index: 20000; 
+    display: flex; justify-content: center; align-items: center; 
+    backdrop-filter: blur(4px); overflow: hidden; 
 }
+
 .ba-win { 
-    position: relative;
-    z-index: 3001;
-    width: 550px; 
-    max-height: 85vh;
-    background: var(--SmartThemeBgColor, #181818); 
+    position: relative; width: 90vw; max-width: 500px; max-height: 85vh; 
+    background-color: #1a1a1a; 
+    background-image: linear-gradient(var(--SmartThemeBgColor, #1a1a1a), var(--SmartThemeBgColor, #1a1a1a));
     border: 1px solid var(--SmartThemeBorderColor, #444); 
-    border-radius: 12px; 
-    display: flex; 
-    flex-direction: column; 
-    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    border-radius: 12px; display: flex; flex-direction: column; 
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8); overflow: hidden;
 }
 
 /* Header / 标题栏 */
-.ba-head { padding: 15px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid var(--SmartThemeBorderColor, #333); display: flex; justify-content: space-between; align-items: center; }
-.ba-head h3 { margin: 0; font-size: 1.1em; display: flex; align-items: center; gap: 10px; }
-.ba-close { 
-    cursor: pointer; 
-    font-size: 24px; 
-    padding: 10px; /* 增加点击区域 */
-    margin: -10px; /* 抵消 padding 保持位置不变 */
-    line-height: 1; 
-    opacity: 0.8; 
-    transition: 0.2s; 
-    z-index: 3002; /* 确保它在最顶层 */
+.ba-head { 
+    padding: 15px 20px; background: rgba(0,0,0,0.3); 
+    border-bottom: 1px solid var(--SmartThemeBorderColor, #333); 
+    display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; 
 }
-.ba-close:hover { 
-    color: #ff6b6b; 
-    opacity: 1; 
-    transform: scale(1.1);
+.ba-head h3 { margin: 0; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+
+/* Tabs / 标签页 - 还原初版高亮条 */
+.ba-tabs { display: flex; background: rgba(0,0,0,0.2); flex-shrink: 0; }
+.ba-tab { 
+    flex: 1; text-align: center; padding: 12px; cursor: pointer; 
+    border-bottom: 2px solid transparent; opacity: 0.6; transition: 0.2s; font-weight: bold; 
+}
+.ba-tab.active { 
+    border-bottom-color: var(--SmartThemeQuoteColor, #6fa8dc); 
+    opacity: 1; color: var(--SmartThemeQuoteColor, #6fa8dc); 
+    background: rgba(255,255,255,0.02); 
 }
 
-/* Tabs / 标签页 */
-.ba-tabs { display: flex; background: rgba(0,0,0,0.2); }
-.ba-tab { flex: 1; text-align: center; padding: 12px; cursor: pointer; border-bottom: 2px solid transparent; opacity: 0.7; transition: 0.2s; font-weight: bold; }
-.ba-tab:hover { background: rgba(255,255,255,0.05); opacity: 1; }
-.ba-tab.active { border-bottom-color: var(--SmartThemeQuoteColor, #6fa8dc); opacity: 1; background: rgba(255,255,255,0.02); color: var(--SmartThemeQuoteColor, #6fa8dc); }
+/* Content Area / 内容区 */
+.ba-content { padding: 20px; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* Content / 内容区 */
-.ba-content { padding: 20px; flex: 1; overflow-y: auto; }
-.ba-desc { margin-bottom: 15px; opacity: 0.8; font-size: 0.9em; }
+/* Warning Box / 警告框 - 强化视觉 */
+.ba-warning-box { 
+    background: rgba(255, 68, 68, 0.1); 
+    border: 1px solid rgba(255, 68, 68, 0.4); 
+    color: #ff8e8e; padding: 15px; border-radius: 10px; 
+    margin-bottom: 20px; line-height: 1.5; font-size: 0.95em;
+}
+.ba-warning-box strong { color: #ff5555; text-decoration: underline; }
 
-/* List Items / 列表项 */
-.ba-list { display: flex; flex-direction: column; gap: 8px; }
+/* List Items / 列表项 - 还原初版样式 */
+.ba-list { display: flex; flex-direction: column; gap: 10px; }
 .ba-item { 
     display: flex; align-items: center; gap: 15px; padding: 12px 15px; 
-    background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid transparent;
-    cursor: pointer; transition: all 0.2s;
+    background: rgba(255,255,255,0.03); border-radius: 8px; 
+    border: 1px solid rgba(255,255,255,0.05); transition: all 0.2s; 
 }
-.ba-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.1); }
-.ba-item input[type="checkbox"] { transform: scale(1.3); cursor: pointer; margin: 0; }
-.ba-item-text { display: flex; flex-direction: column; gap: 2px; }
-.ba-title { font-weight: bold; font-size: 1em; color: var(--SmartThemeBodyColor, #eee); }
-.ba-subtitle { font-size: 0.8em; opacity: 0.5; }
+.ba-item:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
+.ba-item input[type="checkbox"] { width: 20px; height: 20px; margin: 0; flex-shrink: 0; cursor: pointer; }
 
-/* Buttons / 按钮 */
-.ba-actions { margin-top: 20px; text-align: center; }
-.ba-btn { padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-size: 1em; font-weight: bold; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; width: 100%; justify-content: center; }
-.ba-btn.primary { background: linear-gradient(135deg, #6fa8dc, #4a90e2); color: white; box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3); }
-.ba-btn.danger { background: linear-gradient(135deg, #ff6b6b, #d32f2f); color: white; box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3); }
-.ba-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.1); }
-.ba-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
-
-/* Progress Bar / 进度条 */
-.ba-progress-area { padding: 0 20px 20px 20px; }
-.ba-status-text { font-size: 0.85em; margin-bottom: 5px; text-align: right; opacity: 0.7; font-family: monospace; }
-.ba-progress-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-.ba-progress-bar { height: 100%; background: #6fa8dc; width: 0%; transition: width 0.3s ease; }
-
-/* Warning Box / 警告框 */
-.ba-warning-box { background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.3); color: #ff8e8e; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-
-/* Upload Area / 上传区域 */
+/* Upload Area / 上传区域 - 重点美化 */
 .ba-upload-area { 
-    margin: 20px 0; 
-    padding: 30px 20px; 
-    border: 2px dashed rgba(255,255,255,0.2); 
-    border-radius: 10px; 
-    text-align: center; 
-    transition: 0.2s; 
-    background: rgba(255,255,255,0.02);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    margin: 10px 0 20px 0; padding: 40px 20px; 
+    border: 2px dashed rgba(255,255,255,0.15); 
+    border-radius: 12px; text-align: center; transition: 0.3s; 
+    background: rgba(255,255,255,0.02); position: relative;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
-.ba-upload-area:hover { 
+.ba-upload-area:hover, .ba-upload-area:active { 
     border-color: var(--SmartThemeQuoteColor, #6fa8dc); 
-    background: rgba(var(--SmartThemeQuoteColorRGB, 111, 168, 220), 0.1); 
+    background: rgba(111, 168, 220, 0.05); 
 }
+.ba-upload-icon { font-size: 2em; opacity: 0.5; margin-bottom: 5px; }
+.ba-upload-text { font-size: 0.9em; opacity: 0.8; color: var(--SmartThemeBodyColor, #eee); }
 
-/* Force Input on top / 强制 Input 置顶 */
+/* Force Hidden Input */
 .ba-upload-area input[type="file"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-    z-index: 999;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0; cursor: pointer; z-index: 10;
 }
 
-.ba-foot { text-align: center; font-size: 0.7em; opacity: 0.3; padding-bottom: 10px; }
+/* Buttons / 按钮 - 恢复渐变与投影 */
+.ba-actions { padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; }
+.ba-btn { 
+    padding: 14px; border: none; border-radius: 10px; 
+    font-size: 1rem; font-weight: bold; width: 100%; cursor: pointer;
+    background: linear-gradient(135deg, #6fa8dc, #4a90e2); 
+    color: white; box-shadow: 0 4px 15px rgba(74, 144, 226, 0.3);
+    transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.ba-btn:active { transform: translateY(2px); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+.ba-btn.danger { background: linear-gradient(135deg, #ff6b6b, #d32f2f); box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3); }
+
+/* Progress / 进度条 */
+.ba-progress-area { padding: 0 20px 20px; flex-shrink: 0; }
+.ba-progress-bg { height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+.ba-progress-bar { height: 100%; background: #6fa8dc; width: 0%; transition: width 0.3s; }
+
+/* Footer / 页脚 */
+.ba-foot { text-align: center; font-size: 0.75rem; opacity: 0.3; padding: 10px; }
