@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require('fs');
+const { Transform } = require('stream');
 
 // Attempt to load dependencies / 尝试加载依赖
 let archiver, AdmZip, fsExtra;
@@ -55,18 +56,42 @@ function cleanTempFolder() {
 }
 
 /**
+ * Helper: Check if file content is different
+ * 辅助：检查文件内容是否不同
+ */
+function isFileDifferent(src, dest) {
+    if (!fs.existsSync(dest)) return true;
+    try {
+        const srcStat = fs.statSync(src);
+        const destStat = fs.statSync(dest);
+        if (srcStat.size !== destStat.size) return true;
+        const srcBuff = fs.readFileSync(src);
+        const destBuff = fs.readFileSync(dest);
+        return !srcBuff.equals(destBuff);
+    } catch (e) {
+        return true;
+    }
+}
+
+/**
  * Helper: Auto-deploy frontend files
  * 辅助：自动部署前端文件
  */
 function installFrontend() {
     try {
         if (!fs.existsSync(EXTENSION_DIR)) fs.mkdirSync(EXTENSION_DIR, { recursive: true });
+        let updated = false;
         ['index.js', 'style.css', 'manifest.json'].forEach(file => {
             const src = path.join(PLUGIN_DIR, 'public', file);
             const dest = path.join(EXTENSION_DIR, file);
-            if (fs.existsSync(src)) fs.copyFileSync(src, dest);
+            if (fs.existsSync(src)) {
+                if (isFileDifferent(src, dest)) {
+                    fs.copyFileSync(src, dest);
+                    updated = true;
+                }
+            }
         });
-        console.log('[BackupAssistant] UI Extension files installed/updated.');
+        if (updated) console.log('[BackupAssistant] UI Extension files installed/updated.');
     } catch (err) {
         console.error('[BackupAssistant] UI Install Error:', err);
     }
@@ -199,24 +224,87 @@ function init(app, config) {
         const filePath = path.join(BACKUP_TEMP_DIR, fileName);
         const writeStream = fs.createWriteStream(filePath);
 
-        req.pipe(writeStream);
+        const totalBytes = parseInt(req.headers['content-length'] || 0);
+        let receivedBytes = 0;
+        let lastUpdate = 0;
+
+        const progressMonitor = new Transform({
+            transform(chunk, encoding, callback) {
+                receivedBytes += chunk.length;
+                const now = Date.now();
+                // Update at most every 500ms to avoid spamming
+                if (totalBytes > 0 && now - lastUpdate > 500) {
+                    // Map 0-100 upload to 0-90 total progress
+                    const uploadPercent = (receivedBytes / totalBytes);
+                    const totalPercent = uploadPercent * 90;
+                    updateStatus(totalPercent, `Uploading... ${Math.round(uploadPercent * 100)}%`);
+                    lastUpdate = now;
+                }
+                callback(null, chunk);
+            }
+        });
+
+        req.pipe(progressMonitor).pipe(writeStream);
 
         writeStream.on('finish', async () => {
             try {
-                updateStatus(20, "Verifying... / 校验文件...", 'working');
+                if (!fsExtra) throw new Error("fs-extra dependency missing");
+
+                updateStatus(95, "Verifying... / 校验文件...", 'working');
                 const zip = new AdmZip(filePath);
                 const rootDir = process.cwd();
+                const extractDir = path.join(BACKUP_TEMP_DIR, 'extract_temp');
                 
-                updateStatus(30, "Extracting... / 正在解压覆盖...", 'working');
-                zip.extractAllTo(rootDir, true);
+                // Clean extract dir
+                fsExtra.emptyDirSync(extractDir);
 
-                // Clean up upload file / 删除上传的包
+                updateStatus(96, "Extracting... / 正在解压...", 'working');
+                try {
+                    zip.extractAllTo(extractDir, true);
+                } catch (e) {
+                    throw new Error("Unzip failed: " + e.message);
+                }
+
+                updateStatus(98, "Restoring... / 正在还原...", 'working');
+
+                // Detect Backup Type / 检测备份类型
+                if (fs.existsSync(path.join(extractDir, 'data'))) {
+                    // Type A: Plugin Backup (contains 'data' folder) / 插件备份（包含 data 目录）
+                    console.log('[BackupAssistant] Detected Plugin Backup');
+                    
+                    // Safety Check: Remove broken config.yaml if it's too small (e.g. symlink text) / 安全检查：如果配置文件过小（可能是损坏的链接文本），则不还原它
+                    const configPath = path.join(extractDir, 'config.yaml');
+                    if (fs.existsSync(configPath)) {
+                        const stats = fs.statSync(configPath);
+                        if (stats.size < 100) {
+                            console.warn('[BackupAssistant] Skipped restoring suspicious config.yaml (too small)');
+                            fs.unlinkSync(configPath);
+                        }
+                    }
+
+                    fsExtra.copySync(extractDir, rootDir, { overwrite: true });
+                } else if (fs.existsSync(path.join(extractDir, 'characters')) || fs.existsSync(path.join(extractDir, 'chats'))) {
+                    // Type B: Standard Backup (flat structure) / 标准备份（扁平结构）
+                    console.log('[BackupAssistant] Detected Standard Backup');
+                    const targetDir = path.join(rootDir, 'data', 'default-user');
+                    // Ensure target directory exists
+                    fsExtra.ensureDirSync(targetDir);
+                    fsExtra.copySync(extractDir, targetDir, { overwrite: true });
+                } else {
+                    // Type C: Unknown, fallback to root / 未知格式，默认解压到根目录
+                    console.log('[BackupAssistant] Unknown Backup Format, restoring to root');
+                    fsExtra.copySync(extractDir, rootDir, { overwrite: true });
+                }
+
+                // Clean up / 清理
                 try { fs.unlinkSync(filePath); } catch(e) {}
+                try { fsExtra.removeSync(extractDir); } catch(e) {}
 
                 updateStatus(100, "Success! Please refresh. / 还原成功！请刷新。", 'done');
                 res.json({ success: true });
             } catch (err) {
-                updateStatus(0, "Failed: " + err.message, 'error');
+                console.error("[BackupAssistant] Restore Error:", err);
+                updateStatus(0, "Error: " + err.message, 'error');
                 res.json({ success: false, error: err.message });
             }
         });
